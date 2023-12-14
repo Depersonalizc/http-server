@@ -26,6 +26,10 @@ func (hf HandlerFn) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	hf(w, r)
 }
 
+func RegisterHandlerFn(path string, hf HandlerFn) error {
+	return DefaultRequestRouter.RegisterHandlerFn(path, hf)
+}
+
 // PageNotFound writes a 404 page not found response
 type PageNotFound struct{}
 
@@ -47,7 +51,10 @@ func (rr *RequestRouter) RegisterHandlerFn(path string, hf HandlerFn) error {
 	if hf == nil {
 		return errors.New("nil handler function")
 	}
-	if _, ok := rr.handlers[path]; ok {
+
+	if rr.handlers == nil {
+		rr.handlers = make(map[string]http.Handler)
+	} else if _, ok := rr.handlers[path]; ok {
 		return errors.New("handler for " + path + "already exists")
 	}
 
@@ -118,6 +125,10 @@ func (server *Server) Serve(listener net.Listener) error {
 		server.Handler = DefaultRequestRouter
 	}
 
+	if server.clients == nil {
+		server.clients = make(map[*Client]struct{})
+	}
+
 	// Accept-and-serve loop
 	for {
 		conn, err := server.listener.Accept()
@@ -151,7 +162,7 @@ func (server *Server) serveClient(c *Client) {
 		if err != nil {
 			const errorHeaders = "\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\n\r\n"
 			const badRequest = "400 Bad Request"
-			_, _ = fmt.Fprintf(c.tcpConn, "HTTP/1.1 "+badRequest+errorHeaders+badRequest)
+			_, _ = fmt.Fprintf(c.tcpConn, "HTTP/1.1 %s%s%s", badRequest, errorHeaders, badRequest)
 			return
 		}
 
