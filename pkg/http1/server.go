@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -128,16 +129,20 @@ func (server *Server) serveClient(c *ClientConn) {
 
 	for {
 		// Read the next request
-		
-
 		request, err := http.ReadRequest(rbuf)
 
 		if err != nil {
-			fmt.Println("Error:", err)
+			if err == io.EOF {
+				// Close the connection if err is EOF
+				c.tcpConn.Close()
+				delete(server.clients, c)
+				return
+			}
+
 			const errorHeaders = "\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\n\r\n"
 			const badRequest = "400 Bad Request"
 			_, _ = fmt.Fprintf(c.tcpConn, "HTTP/1.1 %s%s%s", badRequest, errorHeaders, badRequest)
-			return
+			continue
 		}
 
 		request.Write(os.Stdout)
