@@ -10,7 +10,7 @@ import (
 
 // SimpleResponseWriter implements http.ResponseWriter
 type SimpleResponseWriter struct {
-	wbuf        bufio.Writer
+	wbuf        *bufio.Writer
 	header      http.Header
 	status      int
 	contentLen  int

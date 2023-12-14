@@ -135,9 +135,9 @@ func (server *Server) serveClient(c *ClientConn) {
 			_, _ = fmt.Fprintf(c.tcpConn, "HTTP/1.1 %s%s%s", badRequest, errorHeaders, badRequest)
 			return
 		}
-
+		
 		// Generate the response
-		respWriter := &SimpleResponseWriter{wbuf: c.tcpConn}
+		respWriter := &SimpleResponseWriter{wbuf: bufio.NewWriter(c.tcpConn)}
 		server.Handler.ServeHTTP(respWriter, request)
 	}
 }
