@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"http-server/pkg/http1"
-	"io"
+	"os"
 )
 
 func main() {
@@ -21,15 +21,7 @@ func main() {
 	defer resp.Body.Close()
 
 	// Print the response status code
-	fmt.Println("Response")
-	fmt.Println("Response Status:", resp.Status)
-	fmt.Println("Response Status Code:", resp.StatusCode)
-	fmt.Println("Response Headers:", resp.Header)
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("[ERROR] ", err)
-		return
-	}
-	fmt.Printf("Response Body:\n%s", string(body))
+	fmt.Println("Response:")
+	resp.Write(os.Stdout)
 
 }

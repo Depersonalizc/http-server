@@ -82,13 +82,11 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Response:")
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Response:\n%s", string(body))
 
 	resp.Body = io.NopCloser(bytes.NewReader(body))
 

@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"http-server/pkg/http1"
 	"net/http"
+	"os"
 	"time"
 )
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	w.Header().Set("Content-Length", "8")
 
-	_, err := w.Write([]byte("fuck you"))
+	content, err := os.ReadFile("resource/hi.html")
 	if err != nil {
-		fmt.Printf("[ERROR] Failed to write content: %v\n", err)
+		fmt.Printf("[ERROR] Failed to read file: %v\n", err)
+		return
 	}
+
+	w.Write(content)
 }
 
 func main() {

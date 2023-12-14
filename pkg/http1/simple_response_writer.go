@@ -74,13 +74,27 @@ func (w *SimpleResponseWriter) Write(p []byte) (int, error) {
 			"Content-Length mismatch (header: %v, actual: %v)", w.contentLen, len(p))
 	}
 
-	fmt.Println("fwefwefwefwef")
-	nn, err := w.wbuf.Write(append(p, []byte("\r\n")...))
+
+	n, err := w.wbuf.Write([]byte("\r\n"))
+	if err != nil {
+		log.Printf("Failed to Write: %v\n", err)
+		return n, err
+	}
+	
+	nn, err := w.wbuf.Write(p)
 	if err != nil {
 		log.Printf("Failed to Write: %v\n", err)
 		return nn, err
 	}
+	n += nn
+
+	nn, err = w.wbuf.Write([]byte("\r\n"))
+	if err != nil {
+		log.Printf("Failed to Write: %v\n", err)
+		return n, err
+	}
+	n += nn
 
 	err = w.wbuf.Flush()
-	return nn, err
+	return n, err
 }

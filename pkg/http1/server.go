@@ -128,7 +128,8 @@ func (server *Server) serveClient(c *ClientConn) {
 
 	for {
 		// Read the next request
-		fmt.Printf("Reading request...\n")
+		
+
 		request, err := http.ReadRequest(rbuf)
 
 		if err != nil {
