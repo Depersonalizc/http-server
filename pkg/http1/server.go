@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 )
 
 /**  Handlers  **/
@@ -127,14 +128,18 @@ func (server *Server) serveClient(c *ClientConn) {
 
 	for {
 		// Read the next request
+		fmt.Printf("Reading request...\n")
 		request, err := http.ReadRequest(rbuf)
 
 		if err != nil {
+			fmt.Println("Error:", err)
 			const errorHeaders = "\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\n\r\n"
 			const badRequest = "400 Bad Request"
 			_, _ = fmt.Fprintf(c.tcpConn, "HTTP/1.1 %s%s%s", badRequest, errorHeaders, badRequest)
 			return
 		}
+
+		request.Write(os.Stdout)
 
 		// Generate the response
 		respWriter := &SimpleResponseWriter{wbuf: wbuf}

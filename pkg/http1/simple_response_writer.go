@@ -75,7 +75,7 @@ func (w *SimpleResponseWriter) Write(p []byte) (int, error) {
 	}
 
 	fmt.Println("fwefwefwefwef")
-	nn, err := w.wbuf.Write(p)
+	nn, err := w.wbuf.Write(append(p, []byte("\r\n")...))
 	if err != nil {
 		log.Printf("Failed to Write: %v\n", err)
 		return nn, err
