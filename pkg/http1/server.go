@@ -152,6 +152,16 @@ func (server *Server) Serve(listener net.Listener) error {
 	}
 }
 
+func (server *Server) Close() error {
+	err := server.listener.Close()
+
+	for client := range server.clients {
+		err = errors.Join(err, client.tcpConn.Close())
+	}
+
+	return err
+}
+
 func (server *Server) serveClient(c *Client) {
 	rbuf := bufio.NewReader(c.tcpConn)
 
@@ -231,7 +241,7 @@ func (w *SimpleResponseWriter) Write(p []byte) (int, error) {
 	// Make sure len(p) == w.contentLen
 	if len(p) != w.contentLen {
 		return 0, errors.New(fmt.Sprintf(
-			"Content-Length mismatch (header: %v, actual %v)", w.contentLen, len(p)))
+			"Content-Length mismatch (header: %v, actual: %v)", w.contentLen, len(p)))
 	}
 
 	return w.wbuf.Write(p)

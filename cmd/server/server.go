@@ -29,4 +29,9 @@ func main() {
 	if err != nil {
 		fmt.Errorf("[ERROR] from ListenAndServe(): %v\n", err)
 	}
+
+	err = server.Close()
+	if err != nil {
+		fmt.Errorf("[ERROR] from Close(): %v\n", err)
+	}
 }
