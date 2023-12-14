@@ -52,12 +52,10 @@ func (w *SimpleResponseWriter) WriteHeader(statusCode int) {
 	}
 
 	// Write header fields
-	for k, v := range w.header {
-		_, err = w.wbuf.WriteString(fmt.Sprintf("%s: %v\r\n", k, v))
-		if err != nil {
-			log.Printf("failed to write header field: %v\n", err)
-			return
-		}
+	err = w.Header().Write(w.wbuf)
+	if err != nil {
+		log.Printf("failed to write header fields: %v\n", err)
+		return
 	}
 
 	w.status = statusCode
@@ -77,5 +75,12 @@ func (w *SimpleResponseWriter) Write(p []byte) (int, error) {
 	}
 
 	fmt.Println("fwefwefwefwef")
-	return w.wbuf.Write(p)
+	nn, err := w.wbuf.Write(p)
+	if err != nil {
+		log.Printf("Failed to Write: %v\n", err)
+		return nn, err
+	}
+
+	err = w.wbuf.Flush()
+	return nn, err
 }

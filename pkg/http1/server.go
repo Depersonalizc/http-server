@@ -43,7 +43,6 @@ type ClientConn struct {
 	tcpConn net.Conn
 }
 
-
 /**  Server  **/
 
 type Server struct {
@@ -124,6 +123,7 @@ func (server *Server) Close() error {
 
 func (server *Server) serveClient(c *ClientConn) {
 	rbuf := bufio.NewReader(c.tcpConn)
+	wbuf := bufio.NewWriter(c.tcpConn)
 
 	for {
 		// Read the next request
@@ -135,9 +135,9 @@ func (server *Server) serveClient(c *ClientConn) {
 			_, _ = fmt.Fprintf(c.tcpConn, "HTTP/1.1 %s%s%s", badRequest, errorHeaders, badRequest)
 			return
 		}
-		
+
 		// Generate the response
-		respWriter := &SimpleResponseWriter{wbuf: bufio.NewWriter(c.tcpConn)}
+		respWriter := &SimpleResponseWriter{wbuf: wbuf}
 		server.Handler.ServeHTTP(respWriter, request)
 	}
 }
