@@ -207,6 +207,15 @@ func (c *Client) getRequestString(req *http.Request) string {
 
 	// Add a blank line to separate headers from body
 	reqStr += "\r\n"
+
+	// Add the request body
+	if req.Body != nil {
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			fmt.Printf("Error reading request body: %v\n", err)
+		}
+		reqStr += string(body)
+	}
 	
 	// Return the request string
 	return reqStr
