@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"net/http"
@@ -123,6 +122,12 @@ func (server *Server) Close() error {
 	return err
 }
 
+func (server *Server) closeClient(c *ClientConn) error {
+	err := c.tcpConn.Close()
+	delete(server.clients, c)
+	return err
+}
+
 func (server *Server) serveClient(c *ClientConn) {
 	rbuf := bufio.NewReader(c.tcpConn)
 	wbuf := bufio.NewWriter(c.tcpConn)
@@ -132,17 +137,10 @@ func (server *Server) serveClient(c *ClientConn) {
 		request, err := http.ReadRequest(rbuf)
 
 		if err != nil {
-			if err == io.EOF {
-				// Close the connection if err is EOF
-				c.tcpConn.Close()
-				delete(server.clients, c)
-				return
-			}
-
 			const errorHeaders = "\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\n\r\n"
 			const badRequest = "400 Bad Request"
 			_, _ = fmt.Fprintf(c.tcpConn, "HTTP/1.1 %s%s%s", badRequest, errorHeaders, badRequest)
-			continue
+			break
 		}
 
 		request.Write(os.Stdout)
@@ -150,5 +148,14 @@ func (server *Server) serveClient(c *ClientConn) {
 		// Generate the response
 		respWriter := &SimpleResponseWriter{wbuf: wbuf}
 		server.Handler.ServeHTTP(respWriter, request)
+
+		if request.Header.Get("Connection") == "close" {
+			break
+		}
+	}
+
+	err := server.closeClient(c)
+	if err != nil {
+		fmt.Printf("Failed to close client connection :%v\n", err)
 	}
 }
