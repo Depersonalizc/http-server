@@ -24,6 +24,10 @@ func (rr *RequestRouter) RegisterHandlerFn(path string, hf HandlerFn) error {
 		return errors.New("handler for " + path + "already exists")
 	}
 
+	// clean path
+	if path[0] != '/' {
+		path = "/" + path
+	}
 	rr.handlers[path] = hf
 	return nil
 }
