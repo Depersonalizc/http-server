@@ -25,8 +25,13 @@ func (rr *RequestRouter) RegisterHandlerFn(path string, hf HandlerFn) error {
 	}
 
 	// clean path
-	if path[0] != '/' {
-		path = "/" + path
+	if path != "/" {
+		if path[0] != '/' {
+			path = "/" + path
+		}
+		if path[len(path)-1] == '/' {
+			path = path[:len(path)-1]
+		}
 	}
 	rr.handlers[path] = hf
 	return nil
