@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -63,9 +62,7 @@ func (arr *AuthRequestRouter) RegisterHandlerFn(path string, hf HandlerFn, authF
 			// authenticate if the basic authentication contains only username and password
 			if authFn(authVals[0], authVals[1]) {
 				// if authenticated, call the handler function
-				log.Println("into")
 				hf(w, r)
-				log.Println("out of")
 			} else {
 				// if not authenticated, return 401
 				arr.writeUnauthorizedResponse(w)

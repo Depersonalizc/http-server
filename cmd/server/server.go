@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"http-server/pkg/http1"
-	"log"
 	"net/http"
 	"os"
 )
@@ -37,10 +36,8 @@ func resourceMemeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func adminHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("into adminHandler")
-	w.Header()
-	w.Write([]byte("Hi, admin!"))
-	log.Println("out of adminHandler")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Write([]byte("Hi, admin!\n"))
 }
 
 func main() {

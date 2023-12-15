@@ -102,6 +102,7 @@ func (server *Server) Serve(listener net.Listener) error {
 			return err
 		}
 
+		fmt.Println("Opening client connection...")
 		cl := &ClientConn{
 			//server:  server,
 			tcpConn: conn,

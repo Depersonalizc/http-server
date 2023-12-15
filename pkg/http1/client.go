@@ -3,6 +3,7 @@ package http1
 import (
 	"bufio"
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net"
@@ -17,6 +18,7 @@ type Client struct {
 	keepAliveTimeout int
 	keepAliveMax     int
 	servers          map[string]*ServerConn
+	credentials      map[string]string
 }
 
 type ServerConn struct {
@@ -27,6 +29,7 @@ func NewClient() *Client {
 	return &Client{
 		KeepAlive: true,
 		servers:   make(map[string]*ServerConn),
+		credentials: make(map[string]string),
 	}
 }
 
@@ -73,7 +76,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	server, ok := c.servers[parsedUrl.Host]
 	if !ok {
 		newConn, err := net.Dial("tcp", parsedUrl.Host)
-		fmt.Println("Dialing", parsedUrl.Host)
+		fmt.Println("Dialing\n", parsedUrl.Host)
 		if err != nil {
 			return nil, err
 		}
@@ -96,12 +99,11 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	// Read response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-
 	resp.Body = io.NopCloser(bytes.NewReader(body))
 
 	// Close connection if not keep-alive
@@ -113,7 +115,65 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 		delete(c.servers, parsedUrl.Host)
 	}
 
+	if resp.StatusCode == http.StatusUnauthorized && req.Header.Get("Authorization") == "" {
+		return c.tryAuthenticate(req)
+	}
+
 	return resp, nil
+}
+
+func (c *Client) tryAuthenticate(req *http.Request) (*http.Response, error) {
+	// Check if credentials are cached
+	credential, ok := c.credentials[req.URL.String()]
+	if ok {
+		// Add Authorization header
+		req.Header.Set("Authorization", "Basic " + base64.StdEncoding.EncodeToString([]byte(credential)))
+		// Retry request
+		resp, err := c.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode != http.StatusUnauthorized {
+			return resp, nil
+		}
+		delete(c.credentials, req.URL.String())
+	}
+
+	retry := 3
+	for retry > 0 {
+		// Get credentials from user
+		fmt.Print("Username: ")
+		var username string
+		_, err := fmt.Scanln(&username)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Print("Password: ")
+		var password string
+		_, err = fmt.Scanln(&password)
+		if err != nil {
+			return nil, err
+		}
+		// Encode credentials
+		credential = fmt.Sprintf("%s:%s", username, password)
+		req.Header.Set("Authorization", "Basic " + base64.StdEncoding.EncodeToString([]byte(credential)))
+		// Retry request
+		resp, err :=  c.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		// Check if authentication succeeded
+		if resp.StatusCode != http.StatusUnauthorized {
+			// Cache credentials and return response
+			c.credentials[req.URL.String()] = credential
+			return resp, nil
+		} else {
+			// Decrement retry count
+			retry--
+		}
+	}
+	// Return error if authentication failed
+	return nil, fmt.Errorf("authentication failed")
 }
 
 func (c *Client) getRequestString(req *http.Request) string {
