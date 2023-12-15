@@ -123,6 +123,7 @@ func (server *Server) Close() error {
 }
 
 func (server *Server) closeClient(c *ClientConn) error {
+	fmt.Println("Closing client connection...")
 	err := c.tcpConn.Close()
 	delete(server.clients, c)
 	return err

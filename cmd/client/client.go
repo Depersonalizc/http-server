@@ -11,6 +11,7 @@ func main() {
 
 	// Create a new HTTP client
 	client := http1.NewClient()
+	client.SetKeepAlive(false, 0 , 0)
 
 	// Send a GET request to the server
 	resp, err := client.Get("http://127.0.0.1:80/home")

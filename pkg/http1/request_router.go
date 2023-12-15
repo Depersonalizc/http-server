@@ -28,6 +28,11 @@ func (rr *RequestRouter) RegisterHandlerFn(path string, hf HandlerFn) error {
 	return nil
 }
 
+func (rr *RequestRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Find the right handler and delegate the request to it
+	rr.getHandler(r).ServeHTTP(w, r)
+}
+
 func (rr *RequestRouter) getHandler(request *http.Request) http.Handler {
 	// TODO: Perform some cleaning on request.URL.Path?
 
@@ -36,9 +41,4 @@ func (rr *RequestRouter) getHandler(request *http.Request) http.Handler {
 		handler = PageNotFoundHandler
 	}
 	return handler
-}
-
-func (rr *RequestRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Find the right handler and delegate the request to it
-	rr.getHandler(r).ServeHTTP(w, r)
 }

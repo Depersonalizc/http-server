@@ -30,6 +30,16 @@ func NewClient() *Client {
 	}
 }
 
+func (c *Client) SetKeepAlive(keepAlive bool, timeout int, max int) {
+	if keepAlive {
+		c.KeepAlive = true
+		c.keepAliveTimeout = timeout
+		c.keepAliveMax = max
+	} else {
+		c.KeepAlive = false
+	}
+}
+
 func (c *Client) Close() error {
 	for _, server := range c.servers {
 		err := server.conn.Close()
@@ -56,6 +66,10 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 
+	// Get server connection
+	if c.servers == nil {
+		c.servers = make(map[string]*ServerConn)
+	}
 	server, ok := c.servers[parsedUrl.Host]
 	if !ok {
 		newConn, err := net.Dial("tcp", parsedUrl.Host)
@@ -89,6 +103,15 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	resp.Body = io.NopCloser(bytes.NewReader(body))
+
+	// Close connection if not keep-alive
+	if !c.KeepAlive {
+		err = server.conn.Close()
+		if err != nil {
+			return nil, err
+		}
+		delete(c.servers, parsedUrl.Host)
+	}
 
 	return resp, nil
 }
