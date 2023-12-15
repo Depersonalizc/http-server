@@ -35,25 +35,38 @@ func resourceMemeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func adminHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Write([]byte("Hi, admin!\n"))
+}
+
 func main() {
 	fmt.Println("[INFO] Starting HTTP1.1 Server...")
 
-	server := &http1.Server{}
-
-	err := http1.RegisterHandlerFn("/index.html", indexHandler)
+	handler := http1.NewAuthRequestRouter()
+	err := handler.RegisterHandlerFn("/index.html", indexHandler, nil)
 	if err != nil {
 		fmt.Printf("[ERROR] Cannot register handler function for /index.html: %v\n", err)
 	}
 
-	err = http1.RegisterHandlerFn("/", indexHandler)
+	err = handler.RegisterHandlerFn("/", indexHandler, nil)
 	if err != nil {
 		fmt.Printf("[ERROR] Cannot register handler function for /index.html: %v\n", err)
 	}
 
-	err = http1.RegisterHandlerFn("/resource/meme.jpg", resourceMemeHandler)
+	err = handler.RegisterHandlerFn("/resource/meme.jpg", resourceMemeHandler, nil)
 	if err != nil {
 		fmt.Printf("[ERROR] Cannot register handler function for /resource/meme.jpg: %v\n", err)
 	}
+
+	err = handler.RegisterHandlerFn("/admin", adminHandler, func(username, password string) bool {
+		return username == "admin" && password == "admin"
+	})
+	if err != nil {
+		fmt.Printf("[ERROR] Cannot register handler function for /admin/: %v\n", err)
+	}
+
+	server := &http1.Server{ Handler: handler }
 
 	err = server.ListenAndServe()
 	if err != nil {

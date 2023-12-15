@@ -64,7 +64,7 @@ func (w *SimpleResponseWriter) WriteHeader(statusCode int) {
 
 func (w *SimpleResponseWriter) Write(p []byte) (int, error) {
 	if !w.wroteHeader {
-		w.header.Set("Content-Length", strconv.Itoa(len(p)))
+		w.Header().Set("Content-Length", strconv.Itoa(len(p)))
 		w.WriteHeader(http.StatusOK)
 	}
 
