@@ -13,7 +13,7 @@ func main() {
 	client := http1.NewClient()
 
 	// Send a GET request to the server
-	resp, err := client.Get("http://127.0.0.1:80/home")
+	resp, err := client.Get("http://127.0.0.1:80/index.html")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
