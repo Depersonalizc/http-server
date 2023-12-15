@@ -43,8 +43,6 @@ func (rr *RequestRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rr *RequestRouter) getHandler(request *http.Request) http.Handler {
-	// TODO: Perform some cleaning on request.URL.Path?
-
 	handler, ok := rr.handlers[request.URL.Path]
 	if !ok {
 		handler = PageNotFoundHandler

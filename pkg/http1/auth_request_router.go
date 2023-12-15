@@ -40,7 +40,7 @@ func (arr *AuthRequestRouter) RegisterHandlerFn(path string, hf HandlerFn, authF
 			// check if the request contains basic authentication
 			authValsEncoded := r.Header.Get("Authorization")
 			if authValsEncoded == "" || !strings.HasPrefix(authValsEncoded, "Basic ") {
-				w.Header().Set("WWW-Authenticate", "Basic")
+				w.Header().Set("-Authenticate", "Basic")
 				arr.writeUnauthorizedResponse(w)
 				return
 			}

@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 )
 
@@ -63,7 +62,7 @@ func (c *Client) Get(urlStr string) (*http.Response, error) {
 }
 
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
-	// Get server connection
+	// Parse URL
 	parsedUrl, err := url.Parse(req.URL.String())
 	if err != nil {
 		return nil, err
@@ -76,7 +75,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	server, ok := c.servers[parsedUrl.Host]
 	if !ok {
 		newConn, err := net.Dial("tcp", parsedUrl.Host)
-		fmt.Println("Dialing\n", parsedUrl.Host)
+		fmt.Printf("Dialing %s\n", parsedUrl.Host)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +85,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 
 	// Serialize request
 	reqStr := c.getRequestString(req)
-	fmt.Printf("Request:\n%s", reqStr)
+	fmt.Printf("\nRequest:\n%s", reqStr)
 
 	// Send request
 	_, err = server.conn.Write([]byte(reqStr))
@@ -177,8 +176,6 @@ func (c *Client) tryAuthenticate(req *http.Request) (*http.Response, error) {
 }
 
 func (c *Client) getRequestString(req *http.Request) string {
-	req.Write(os.Stdout)
-
 	// Build the request string
 	reqStr := fmt.Sprintf("%s %s %s\r\n", req.Method, req.URL.Path, req.Proto)
 	reqStr += fmt.Sprintf("Host: %s\r\n", req.Host)
